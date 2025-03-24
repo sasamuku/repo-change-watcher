@@ -40,7 +40,8 @@ async function getMergedPRs(owner, repo, daysToCheck = 1) {
   // Filter PRs that were merged in the specified date range
   const mergedPRs = prs.filter(pr => {
     const mergedAt = pr.merged_at ? new Date(pr.merged_at) : null;
-    return pr.merged && mergedAt
+
+    return mergedAt
       && mergedAt >= new Date(startDateISO)
       && mergedAt <= new Date(endDateISO);
   });
