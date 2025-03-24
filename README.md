@@ -1,67 +1,88 @@
 # Repository Change Watcher
 
-A service that monitors GitHub repository changes daily and creates notifications for important PRs using GitHub Issues and Pull Requests.
+A GitHub Action that monitors merged PRs and automatically records change history to a specified file.
 
 ## Features
 
-- Automatically monitors changes in specified GitHub repositories daily
-- Creates GitHub Issues for important PRs merged the previous day
-- Generates Pull Requests to update a changelog file for historical tracking
-- Importance criteria configurable through keywords
-
-## Setup
-
-1. Fork this repository (preferably set it as private)
-   ```
-   # After forking, clone your fork
-   git clone https://github.com/yourusername/repo-change-watcher.git
-   cd repo-change-watcher
-   ```
-
-2. Install dependencies
-   ```
-   npm install
-   ```
-
-3. Edit configuration files
-   - `config/repos.yaml`: Edit monitored repositories
-   - `config/keywords.json`: Edit keywords for determining importance
-
-4. Push changes to your fork
-
-## How It Works
-
-1. Every day at 18:00 JST (9:00 UTC), the GitHub Action workflow runs automatically
-2. The script checks all repositories listed in `repos.yaml` for PRs merged the previous day
-3. PRs containing the keywords specified in `keywords.json` are considered important
-4. An Issue is created with a list of all important PRs for easy reference
-5. A Pull Request is created that updates the CHANGELOG.md file with the important changes
-6. Review the PR and merge it to maintain a historical record of important changes
+- Periodically monitors merged PRs in specified GitHub repositories
+- Automatically records all merged PRs to a designated file
+- Flexible configuration of monitoring targets and output destinations within your workflow
 
 ## Usage
 
-### Local Testing
+### Workflow Configuration
 
+Add the following to your `.github/workflows/pr-watcher.yml`:
+
+```yaml
+name: PR Change Watcher
+
+on:
+  schedule:
+    # Run daily at 9:00 UTC (18:00 JST)
+    - cron: '0 9 * * *'
+  # Manual trigger option
+  workflow_dispatch:
+
+jobs:
+  watch-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Monitor PR Changes
+        uses: sasamuku/repo-change-watcher@v1
+        with:
+          # Target repository to monitor (owner/repo format)
+          target_repository: 'octocat/Hello-World'
+          # Number of days to look back (default is 1)
+          days_to_check: 1
+          # File path to output results
+          output_file: 'docs/CHANGES.md'
+          # Output format (markdown/json/yaml)
+          output_format: 'markdown'
+          # GitHub token for API authentication
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+## Input Parameters
+
+| Parameter | Required | Description | Default |
+|-----------|----------|-------------|---------|
+| `target_repository` | ✅ | Target repository to monitor (owner/repo format) | - |
+| `days_to_check` | ❌ | Number of days to look back for PRs | `1` |
+| `output_file` | ✅ | File path to write results | - |
+| `output_format` | ❌ | Output format (markdown/json/yaml) | `markdown` |
+| `github_token` | ✅ | GitHub token for API authentication | - |
+
+## Output Format Examples
+
+### Markdown Format (Default)
+
+```markdown
+# PR Change History (2023-04-01)
+
+- [#123](https://github.com/octocat/Hello-World/pull/123) Add new feature A (@octocat)
+- [#124](https://github.com/octocat/Hello-World/pull/124) Fix bug (@octodev)
+- [#125](https://github.com/octocat/Hello-World/pull/125) Update documentation (@octofan)
+```
+
+## Local Testing
+
+```bash
 # Set required environment variables
 export GITHUB_TOKEN=your_github_token
-export GITHUB_REPOSITORY_OWNER=your_username
-export GITHUB_REPOSITORY_NAME=repo-change-watcher
 
 # Run the script
-npm start
+npm start -- --target-repository=octocat/Hello-World --output-file=changes.md
 ```
-
-### Automatic execution via GitHub Actions
-
-The workflow uses the default `GITHUB_TOKEN` provided by GitHub Actions, so no additional secret setup is needed. The repository owner and name are automatically determined from the GitHub context.
 
 ## Benefits
 
-- No external email service configuration required
-- All notifications stay within the GitHub ecosystem
-- Historical record of important changes is maintained in your repository
-- Easily searchable and linkable change history
+- No external service integration needed, works entirely within GitHub Actions
+- Monitor PR changes in any repository
+- Automatically record change history and manage it within your project
+- Customizable output format
 
 ## License
 
