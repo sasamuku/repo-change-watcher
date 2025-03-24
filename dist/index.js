@@ -37991,6 +37991,8 @@ function wrappy (fn, cb) {
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const { Octokit } = __nccwpck_require__(5375);
+const fs = (__nccwpck_require__(7147).promises);
+const path = __nccwpck_require__(1017);
 
 // Initialize GitHub client
 const octokit = new Octokit({
@@ -38048,71 +38050,169 @@ async function getMergedPRs(owner, repo, daysToCheck = 1) {
 }
 
 /**
- * Generate markdown formatted content with merged PRs
- * @param {Array} mergedPRs - List of merged PRs
+ * Check if a file exists
+ * @param {string} filePath - Path to check
+ * @returns {Promise<boolean>} Whether file exists
+ */
+async function fileExists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Extract existing PR IDs from content to avoid duplicates
+ * @param {string} content - File content
+ * @param {string} format - File format
+ * @returns {Set} Set of PR IDs
+ */
+function extractExistingPRIds(content, format) {
+  const prIds = new Set();
+
+  if (!content.trim()) {
+    return prIds;
+  }
+
+  switch (format.toLowerCase()) {
+    case 'json': {
+      try {
+        const json = JSON.parse(content);
+
+        // Handle new format with pr_history
+        if (json.pr_history) {
+          Object.values(json.pr_history).forEach(prs => {
+            prs.forEach(pr => {
+              if (pr.number) prIds.add(pr.number);
+            });
+          });
+        }
+        // Handle old format with pull_requests array
+        else if (json.pull_requests && Array.isArray(json.pull_requests)) {
+          json.pull_requests.forEach(pr => {
+            if (pr.number) prIds.add(pr.number);
+          });
+        }
+      } catch (e) {
+        console.error('Error parsing JSON file:', e);
+      }
+      break;
+    }
+    case 'yaml': {
+      try {
+        const yaml = __nccwpck_require__(1917);
+        const data = yaml.load(content);
+
+        // Handle new format with pr_history
+        if (data.pr_history) {
+          Object.values(data.pr_history).forEach(prs => {
+            prs.forEach(pr => {
+              if (pr.number) prIds.add(pr.number);
+            });
+          });
+        }
+        // Handle old format with pull_requests array
+        else if (data.pull_requests && Array.isArray(data.pull_requests)) {
+          data.pull_requests.forEach(pr => {
+            if (pr.number) prIds.add(pr.number);
+          });
+        }
+      } catch (e) {
+        console.error('Error parsing YAML file:', e);
+      }
+      break;
+    }
+    case 'markdown':
+    default: {
+      // Extract PR numbers from markdown links
+      const prMatches = content.matchAll(/\[#(\d+)\]/g);
+      for (const match of prMatches) {
+        prIds.add(parseInt(match[1], 10));
+      }
+      break;
+    }
+  }
+
+  return prIds;
+}
+
+/**
+ * Generate markdown formatted content with merged PRs grouped by date
+ * @param {Object} prsByDate - PRs grouped by date
  * @param {string} repository - Repository in owner/repo format
  * @returns {string} Markdown formatted content
  */
-function generateMarkdownContent(mergedPRs, repository) {
+function generateGroupedMarkdownContent(prsByDate, repository) {
   const [owner, repo] = repository.split('/');
   const date = new Date();
   const formattedDate = date.toISOString().split('T')[0];
 
   let content = `# PR Change History (${formattedDate})\n\n`;
 
-  if (mergedPRs.length === 0) {
+  // Check if there are any PRs at all
+  const totalPRs = Object.values(prsByDate).reduce((sum, prs) => sum + prs.length, 0);
+  if (totalPRs === 0) {
     content += 'No PRs were merged during the specified timeframe.\n';
     return content;
   }
 
-  for (const pr of mergedPRs) {
-    content += `- [#${pr.number}](https://github.com/${owner}/${repo}/pull/${pr.number}) ${pr.title} (@${pr.author})\n`;
+  // Sort dates in descending order
+  const dates = Object.keys(prsByDate).sort().reverse();
+
+  for (const date of dates) {
+    // Add date header
+    content += `## ${date}\n\n`;
+
+    // Add PRs for this date
+    for (const pr of prsByDate[date]) {
+      content += `- [#${pr.number}](https://github.com/${owner}/${repo}/pull/${pr.number}) ${pr.title} (@${pr.author})\n`;
+    }
+    content += '\n';
   }
 
   return content;
 }
 
 /**
- * Generate JSON formatted content with merged PRs
- * @param {Array} mergedPRs - List of merged PRs
+ * Generate JSON formatted content with merged PRs grouped by date
+ * @param {Object} prsByDate - PRs grouped by date
  * @param {string} repository - Repository in owner/repo format
- * @returns {string} JSON formatted content
+ * @returns {Object} JSON data
  */
-function generateJsonContent(mergedPRs, repository) {
+function generateGroupedJsonData(prsByDate, repository) {
   const date = new Date();
   const formattedDate = date.toISOString().split('T')[0];
 
-  const jsonData = {
-    date: formattedDate,
+  return {
     repository: repository,
-    pull_requests: mergedPRs
+    created_at: formattedDate,
+    last_updated: formattedDate,
+    pr_history: prsByDate
   };
-
-  return JSON.stringify(jsonData, null, 2);
 }
 
 /**
- * Generate YAML formatted content with merged PRs
- * @param {Array} mergedPRs - List of merged PRs
+ * Generate YAML formatted content with merged PRs grouped by date
+ * @param {Object} prsByDate - PRs grouped by date
  * @param {string} repository - Repository in owner/repo format
- * @returns {string} YAML formatted content
+ * @returns {Object} YAML data
  */
-function generateYamlContent(mergedPRs, repository) {
-  const yaml = __nccwpck_require__(1917);
+function generateGroupedYamlData(prsByDate, repository) {
   const date = new Date();
   const formattedDate = date.toISOString().split('T')[0];
 
-  const yamlData = {
-    date: formattedDate,
+  return {
     repository: repository,
-    pull_requests: mergedPRs
+    created_at: formattedDate,
+    last_updated: formattedDate,
+    pr_history: prsByDate
   };
-
-  return yaml.dump(yamlData);
 }
 
 /**
- * Write PR changes to file
+ * Write PR changes to file, appending to existing content with daily grouping
  * @param {Array} mergedPRs - List of merged PRs
  * @param {string} repository - Repository in owner/repo format
  * @param {string} outputFile - Path to output file
@@ -38120,27 +38220,235 @@ function generateYamlContent(mergedPRs, repository) {
  * @returns {Promise} Write operation result
  */
 async function writePRChanges(mergedPRs, repository, outputFile, format = 'markdown') {
-  const fs = (__nccwpck_require__(7147).promises);
-  const path = __nccwpck_require__(1017);
-
-  let content;
-
-  switch (format.toLowerCase()) {
-    case 'json':
-      content = generateJsonContent(mergedPRs, repository);
-      break;
-    case 'yaml':
-      content = generateYamlContent(mergedPRs, repository);
-      break;
-    case 'markdown':
-    default:
-      content = generateMarkdownContent(mergedPRs, repository);
-      break;
-  }
-
   // Create directory if it doesn't exist
   const dir = path.dirname(outputFile);
   await fs.mkdir(dir, { recursive: true });
+
+  // Check if file exists and read contents
+  let existingContent = '';
+  let existingPRIds = new Set();
+
+  const fileExistsFlag = await fileExists(outputFile);
+  if (fileExistsFlag) {
+    existingContent = await fs.readFile(outputFile, 'utf8');
+    existingPRIds = extractExistingPRIds(existingContent, format);
+  }
+
+  // Filter out PRs that have already been recorded
+  const newPRs = mergedPRs.filter(pr => !existingPRIds.has(pr.number));
+
+  if (newPRs.length === 0) {
+    console.log('No new PRs to add to the file.');
+    return {
+      file: outputFile,
+      format: format,
+      prCount: 0
+    };
+  }
+
+  // Group new PRs by date
+  const prsByDate = {};
+  newPRs.forEach(pr => {
+    const prDate = new Date(pr.mergedAt).toISOString().split('T')[0];
+    if (!prsByDate[prDate]) {
+      prsByDate[prDate] = [];
+    }
+    prsByDate[prDate].push(pr);
+  });
+
+  // Create the content
+  let content;
+  const date = new Date();
+  const formattedDate = date.toISOString().split('T')[0];
+
+  switch (format.toLowerCase()) {
+    case 'json': {
+      let jsonData;
+
+      if (existingContent) {
+        try {
+          // Parse existing JSON
+          jsonData = JSON.parse(existingContent);
+
+          // Group PRs by date
+          if (!jsonData.pr_history) {
+            // Convert old format to new format if needed
+            jsonData = {
+              repository: jsonData.repository || repository,
+              last_updated: formattedDate,
+              pr_history: {}
+            };
+
+            // Move any existing PRs to their dates
+            if (jsonData.pull_requests) {
+              jsonData.pull_requests.forEach(pr => {
+                const prDate = new Date(pr.mergedAt).toISOString().split('T')[0];
+                if (!jsonData.pr_history[prDate]) {
+                  jsonData.pr_history[prDate] = [];
+                }
+                jsonData.pr_history[prDate].push(pr);
+              });
+              delete jsonData.pull_requests;
+            }
+          }
+
+          // Add new PRs to their respective dates
+          Object.entries(prsByDate).forEach(([date, prs]) => {
+            if (!jsonData.pr_history[date]) {
+              jsonData.pr_history[date] = [];
+            }
+            jsonData.pr_history[date] = [...prs, ...jsonData.pr_history[date]];
+          });
+
+          // Update date
+          jsonData.last_updated = formattedDate;
+        } catch (e) {
+          console.error('Error parsing existing JSON. Creating new file.', e);
+          // Create a new JSON structure with dates as keys
+          jsonData = generateGroupedJsonData(prsByDate, repository);
+        }
+      } else {
+        // Create new JSON content with date-based structure
+        jsonData = generateGroupedJsonData(prsByDate, repository);
+      }
+
+      content = JSON.stringify(jsonData, null, 2);
+      break;
+    }
+    case 'yaml': {
+      const yaml = __nccwpck_require__(1917);
+      let yamlData;
+
+      if (existingContent) {
+        try {
+          // Parse existing YAML
+          yamlData = yaml.load(existingContent);
+
+          // Group PRs by date
+          if (!yamlData.pr_history) {
+            // Convert old format to new format if needed
+            yamlData = {
+              repository: yamlData.repository || repository,
+              last_updated: formattedDate,
+              pr_history: {}
+            };
+
+            // Move any existing PRs to their dates
+            if (yamlData.pull_requests) {
+              yamlData.pull_requests.forEach(pr => {
+                const prDate = new Date(pr.mergedAt).toISOString().split('T')[0];
+                if (!yamlData.pr_history[prDate]) {
+                  yamlData.pr_history[prDate] = [];
+                }
+                yamlData.pr_history[prDate].push(pr);
+              });
+              delete yamlData.pull_requests;
+            }
+          }
+
+          // Add new PRs to their respective dates
+          Object.entries(prsByDate).forEach(([date, prs]) => {
+            if (!yamlData.pr_history[date]) {
+              yamlData.pr_history[date] = [];
+            }
+            yamlData.pr_history[date] = [...prs, ...yamlData.pr_history[date]];
+          });
+
+          // Update date
+          yamlData.last_updated = formattedDate;
+        } catch (e) {
+          console.error('Error parsing existing YAML. Creating new file.', e);
+          yamlData = generateGroupedYamlData(prsByDate, repository);
+        }
+      } else {
+        // Create new YAML content with date-based structure
+        yamlData = generateGroupedYamlData(prsByDate, repository);
+      }
+
+      content = yaml.dump(yamlData);
+      break;
+    }
+    case 'markdown':
+    default: {
+      if (existingContent) {
+        // For markdown, preserve the main header
+        const headerMatch = existingContent.match(/^(# PR Change History.*?\n\n)/);
+
+        if (headerMatch) {
+          const header = headerMatch[1];
+          const existingContent_withoutHeader = existingContent.substring(header.length);
+
+          // Group existing PRs by date sections
+          const dateRegex = /^## (\d{4}-\d{2}-\d{2})/gm;
+          let match;
+          let lastIndex = 0;
+          const existingSections = {};
+
+          while ((match = dateRegex.exec(existingContent_withoutHeader)) !== null) {
+            const date = match[1];
+            const startIndex = match.index;
+
+            // If this is not the first match, extract content from previous date to this date
+            if (lastIndex > 0) {
+              const prevSectionContent = existingContent_withoutHeader.substring(lastIndex, startIndex);
+              const prevDate = Object.keys(existingSections)[Object.keys(existingSections).length - 1];
+              existingSections[prevDate] = prevSectionContent;
+            }
+
+            // Store the start index for the next iteration
+            lastIndex = startIndex;
+
+            // Initialize section
+            existingSections[date] = '';
+          }
+
+          // Handle the last section
+          if (lastIndex > 0) {
+            const lastSectionContent = existingContent_withoutHeader.substring(lastIndex);
+            const lastDate = Object.keys(existingSections)[Object.keys(existingSections).length - 1];
+            existingSections[lastDate] = lastSectionContent;
+          }
+
+          // Build new content with new PRs at the top of each date section
+          let newContent = header;
+
+          // Get all dates from both new and existing content
+          const allDates = [...new Set([...Object.keys(prsByDate), ...Object.keys(existingSections)])];
+          allDates.sort().reverse(); // Sort in descending order
+
+          for (const date of allDates) {
+            newContent += `## ${date}\n\n`;
+
+            // Add new PRs for this date
+            if (prsByDate[date]) {
+              for (const pr of prsByDate[date]) {
+                newContent += `- [#${pr.number}](https://github.com/${repository.split('/')[0]}/${repository.split('/')[1]}/pull/${pr.number}) ${pr.title} (@${pr.author})\n`;
+              }
+            }
+
+            // Add existing content for this date (excluding the date header)
+            if (existingSections[date]) {
+              const sectionContent = existingSections[date];
+              // Skip the date header line and the newline after it
+              const contentWithoutHeader = sectionContent.substring(sectionContent.indexOf('\n\n') + 2);
+              newContent += contentWithoutHeader;
+            } else {
+              newContent += '\n';
+            }
+          }
+
+          content = newContent;
+        } else {
+          // No header found, create new content with date grouping
+          content = generateGroupedMarkdownContent(prsByDate, repository) + existingContent;
+        }
+      } else {
+        // Create new markdown content with date grouping
+        content = generateGroupedMarkdownContent(prsByDate, repository);
+      }
+      break;
+    }
+  }
 
   // Write to file
   await fs.writeFile(outputFile, content);
@@ -38148,7 +38456,7 @@ async function writePRChanges(mergedPRs, repository, outputFile, format = 'markd
   return {
     file: outputFile,
     format: format,
-    prCount: mergedPRs.length
+    prCount: newPRs.length
   };
 }
 

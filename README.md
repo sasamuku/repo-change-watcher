@@ -1,11 +1,13 @@
 # Repository Change Watcher
 
-A GitHub Action that monitors merged PRs and automatically records change history to a specified file.
+A GitHub Action that monitors merged PRs and automatically records change history to a specified file, organized by date.
 
 ## Features
 
 - Periodically monitors merged PRs in specified GitHub repositories
-- Automatically records all merged PRs to a designated file
+- Automatically records all merged PRs to a designated file, grouped by date
+- Maintains a comprehensive history of all changes over time
+- Avoids duplicate entries when run multiple times
 - Flexible configuration of monitoring targets and output destinations within your workflow
 
 ## Usage
@@ -43,6 +45,19 @@ jobs:
           output_format: 'markdown'
           # GitHub token for API authentication
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/CHANGES.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update PR changes [skip ci]"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
 ```
 
 ## Input Parameters
@@ -62,9 +77,77 @@ jobs:
 ```markdown
 # PR Change History (2023-04-01)
 
+## 2023-04-01
+
 - [#123](https://github.com/octocat/Hello-World/pull/123) Add new feature A (@octocat)
 - [#124](https://github.com/octocat/Hello-World/pull/124) Fix bug (@octodev)
+
+## 2023-03-31
+
 - [#125](https://github.com/octocat/Hello-World/pull/125) Update documentation (@octofan)
+```
+
+### JSON Format
+
+```json
+{
+  "repository": "octocat/Hello-World",
+  "created_at": "2023-04-01",
+  "last_updated": "2023-04-01",
+  "pr_history": {
+    "2023-04-01": [
+      {
+        "number": 123,
+        "title": "Add new feature A",
+        "url": "https://github.com/octocat/Hello-World/pull/123",
+        "author": "octocat",
+        "mergedAt": "2023-04-01T14:32:25Z"
+      },
+      {
+        "number": 124,
+        "title": "Fix bug",
+        "url": "https://github.com/octocat/Hello-World/pull/124",
+        "author": "octodev",
+        "mergedAt": "2023-04-01T10:15:30Z"
+      }
+    ],
+    "2023-03-31": [
+      {
+        "number": 125,
+        "title": "Update documentation",
+        "url": "https://github.com/octocat/Hello-World/pull/125",
+        "author": "octofan",
+        "mergedAt": "2023-03-31T18:45:12Z"
+      }
+    ]
+  }
+}
+```
+
+### YAML Format
+
+```yaml
+repository: octocat/Hello-World
+created_at: '2023-04-01'
+last_updated: '2023-04-01'
+pr_history:
+  '2023-04-01':
+    - number: 123
+      title: Add new feature A
+      url: https://github.com/octocat/Hello-World/pull/123
+      author: octocat
+      mergedAt: '2023-04-01T14:32:25Z'
+    - number: 124
+      title: Fix bug
+      url: https://github.com/octocat/Hello-World/pull/124
+      author: octodev
+      mergedAt: '2023-04-01T10:15:30Z'
+  '2023-03-31':
+    - number: 125
+      title: Update documentation
+      url: https://github.com/octocat/Hello-World/pull/125
+      author: octofan
+      mergedAt: '2023-03-31T18:45:12Z'
 ```
 
 ## Local Testing
@@ -107,11 +190,28 @@ npm start
 
 **Note:** Command line arguments take precedence over values in the `.env` file.
 
+## How It Works
+
+1. The action queries the GitHub API to find PRs that were merged during the specified time period
+2. It collects information about these PRs (number, title, author, merge date)
+3. It organizes PRs by their merge date
+4. It reads the existing output file (if any) to avoid adding duplicate entries
+5. It updates the file with new PRs while preserving the historical data
+6. The resulting file is a chronological record of all merged PRs
+
+## Future Enhancements
+
+- AI-powered PR summary generation
+- Customizable PR filtering options
+- Statistical analysis of PR trends
+- Integration with notification platforms
+
 ## Benefits
 
 - No external service integration needed, works entirely within GitHub Actions
 - Monitor PR changes in any repository
 - Automatically record change history and manage it within your project
+- Chronological organization of PRs by date
 - Customizable output format
 
 ## License
