@@ -27,6 +27,9 @@ on:
   # Manual trigger option
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   generate-digest:
     runs-on: ubuntu-latest
