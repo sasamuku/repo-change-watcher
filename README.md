@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Generate PR Digest
-        uses: sasamuku/repo-sprint-digest@v1
+        uses: sasamuku/repo-sprint-digest@v1.0.0
         with:
           # Target repository to monitor (owner/repo format)
           target_repository: 'octocat/Hello-World'
