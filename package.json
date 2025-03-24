@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "GitHub Action that monitors repository changes and provides summaries of merged PRs grouped by date",
   "main": "dist/index.js",
+  "license": "MIT",
   "scripts": {
     "start": "node src/index.js",
     "build": "ncc build src/index.js -o dist",
