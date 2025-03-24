@@ -28,25 +28,66 @@ async function getMergedPRs(owner, repo, daysToCheck = 1) {
   const endDateISO = today.toISOString();
 
   console.log(`Checking PRs merged between ${startDateISO} and ${endDateISO}`);
+  console.log(`Start date: ${startDate.toDateString()}, End date: ${today.toDateString()}`);
 
-  // Get PRs merged in the date range
-  const { data: prs } = await octokit.pulls.list({
-    owner,
-    repo,
-    state: 'closed',
-    sort: 'updated',
-    direction: 'desc',
-    per_page: 100
-  });
+  // Get PRs with pagination (up to 3 pages = 300 PRs max)
+  let allPRs = [];
+  let page = 1;
+  const maxPages = 3;
+
+  while (page <= maxPages) {
+    console.log(`Fetching page ${page} of PRs...`);
+
+    const { data: pagePRs } = await octokit.pulls.list({
+      owner,
+      repo,
+      state: 'closed',
+      sort: 'updated',
+      direction: 'desc',
+      per_page: 100,
+      page: page
+    });
+
+    if (pagePRs.length === 0) {
+      console.log(`No more PRs found on page ${page}, stopping pagination.`);
+      break;
+    }
+
+    allPRs = [...allPRs, ...pagePRs];
+    page++;
+
+    // Simple rate limit handling
+    if (page <= maxPages) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+
+  console.log(`Found ${allPRs.length} closed PRs in total.`);
 
   // Filter PRs that were merged in the specified date range
-  const mergedPRs = prs.filter(pr => {
+  const mergedPRs = allPRs.filter(pr => {
     const mergedAt = pr.merged_at ? new Date(pr.merged_at) : null;
 
     return mergedAt
       && mergedAt >= new Date(startDateISO)
       && mergedAt <= new Date(endDateISO);
   });
+
+  // Group by date for summary
+  const prsByDate = {};
+  mergedPRs.forEach(pr => {
+    const date = new Date(pr.merged_at).toISOString().split('T')[0];
+    if (!prsByDate[date]) {
+      prsByDate[date] = 0;
+    }
+    prsByDate[date]++;
+  });
+
+  console.log("\n--- Summary of PRs by date ---");
+  Object.entries(prsByDate).sort().forEach(([date, count]) => {
+    console.log(`${date}: ${count} PRs`);
+  });
+  console.log("--------------------------------\n");
 
   return mergedPRs.map(pr => ({
     number: pr.number,
