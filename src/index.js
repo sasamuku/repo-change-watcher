@@ -42,23 +42,67 @@ async function main() {
 if (require.main === module) {
   // Parse command line arguments when run directly
   const args = process.argv.slice(2);
+
+  // Improved command line argument parser
   const getArg = (flag) => {
+    // Check for --key=value format
+    const keyValueArg = args.find(arg => arg.startsWith(`${flag}=`));
+    if (keyValueArg) {
+      return keyValueArg.split('=')[1];
+    }
+
+    // Check for --key value format
     const index = args.indexOf(flag);
-    return index !== -1 && index + 1 < args.length ? args[index + 1] : null;
+    if (index !== -1 && index + 1 < args.length) {
+      return args[index + 1];
+    }
+
+    return null;
   };
 
-  // Set environment variables from command line for local testing
-  if (getArg('--target-repository')) {
-    process.env.INPUT_TARGET_REPOSITORY = getArg('--target-repository');
-  }
-  if (getArg('--days-to-check')) {
-    process.env.INPUT_DAYS_TO_CHECK = getArg('--days-to-check');
-  }
-  if (getArg('--output-file')) {
-    process.env.INPUT_OUTPUT_FILE = getArg('--output-file');
-  }
-  if (getArg('--output-format')) {
-    process.env.INPUT_OUTPUT_FORMAT = getArg('--output-format');
+  // Get command line arguments
+  const cliArgs = {
+    targetRepository: getArg('--target-repository'),
+    daysToCheck: getArg('--days-to-check'),
+    outputFile: getArg('--output-file'),
+    outputFormat: getArg('--output-format')
+  };
+
+  // Backup values loaded from .env file
+  const envBackup = {
+    targetRepository: process.env.INPUT_TARGET_REPOSITORY,
+    daysToCheck: process.env.INPUT_DAYS_TO_CHECK,
+    outputFile: process.env.INPUT_OUTPUT_FILE,
+    outputFormat: process.env.INPUT_OUTPUT_FORMAT
+  };
+
+  // Prioritize command line arguments over .env values
+  if (cliArgs.targetRepository) process.env.INPUT_TARGET_REPOSITORY = cliArgs.targetRepository;
+  if (cliArgs.daysToCheck) process.env.INPUT_DAYS_TO_CHECK = cliArgs.daysToCheck;
+  if (cliArgs.outputFile) process.env.INPUT_OUTPUT_FILE = cliArgs.outputFile;
+  if (cliArgs.outputFormat) process.env.INPUT_OUTPUT_FORMAT = cliArgs.outputFormat;
+
+  // Debug output for used parameters
+  if (!process.env.GITHUB_ACTIONS) {
+    console.log('Configuration:');
+    // Clearly show the source of each parameter
+    console.log(`- Repository: ${process.env.INPUT_TARGET_REPOSITORY}${
+      cliArgs.targetRepository ? ' (from CLI)' :
+      envBackup.targetRepository ? ' (from .env file)' : ' (not set)'
+    }`);
+    console.log(`- Days to check: ${process.env.INPUT_DAYS_TO_CHECK || '1'}${
+      cliArgs.daysToCheck ? ' (from CLI)' :
+      envBackup.daysToCheck ? ' (from .env file)' : ' (default)'
+    }`);
+    console.log(`- Output file: ${process.env.INPUT_OUTPUT_FILE}${
+      cliArgs.outputFile ? ' (from CLI)' :
+      envBackup.outputFile ? ' (from .env file)' : ' (not set)'
+    }`);
+    console.log(`- Output format: ${process.env.INPUT_OUTPUT_FORMAT || 'markdown'}${
+      cliArgs.outputFormat ? ' (from CLI)' :
+      envBackup.outputFormat ? ' (from .env file)' : ' (default)'
+    }`);
+    console.log('---');
   }
 
   // Mock core module for local execution

@@ -69,13 +69,43 @@ jobs:
 
 ## Local Testing
 
+You can test this tool locally using either command line arguments or environment variables:
+
+### Using Command Line Arguments
+
 ```bash
-# Set required environment variables
+# Set GitHub token (required)
 export GITHUB_TOKEN=your_github_token
 
-# Run the script
+# Run with command line arguments (preferred method)
+npm start -- --target-repository="octocat/Hello-World" --days-to-check="1" --output-file="changes.md" --output-format="markdown"
+
+# Alternative format with equals sign
 npm start -- --target-repository=octocat/Hello-World --output-file=changes.md
 ```
+
+### Using a .env File
+
+Create a `.env` file in the project root with the following content:
+
+```
+# GitHub API authentication token (required)
+GITHUB_TOKEN=your_github_token
+
+# Action inputs
+INPUT_TARGET_REPOSITORY=octocat/Hello-World
+INPUT_DAYS_TO_CHECK=1
+INPUT_OUTPUT_FILE=changes.md
+INPUT_OUTPUT_FORMAT=markdown
+```
+
+Then run the application:
+
+```bash
+npm start
+```
+
+**Note:** Command line arguments take precedence over values in the `.env` file.
 
 ## Benefits
 
