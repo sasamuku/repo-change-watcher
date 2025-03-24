@@ -1,0 +1,35 @@
+name: 'Repository Change Watcher'
+description: 'Monitors merged PRs from specified GitHub repositories and records change history'
+author: 'sasamuku'
+branding:
+  icon: 'git-pull-request'
+  color: 'blue'
+
+inputs:
+  target_repository:
+    description: 'Target repository to monitor (owner/repo format)'
+    required: true
+  days_to_check:
+    description: 'Number of days to look back for PRs'
+    required: false
+    default: '1'
+  output_file:
+    description: 'File path to write results'
+    required: true
+  output_format:
+    description: 'Output format (markdown/json/yaml)'
+    required: false
+    default: 'markdown'
+  github_token:
+    description: 'GitHub token for API authentication'
+    required: true
+
+outputs:
+  pr_count:
+    description: 'Number of PRs found and written to file'
+  output_file:
+    description: 'Path to the file where changes were written'
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

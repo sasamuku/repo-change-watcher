@@ -1,15 +1,21 @@
 {
   "name": "repo-change-watcher",
   "version": "1.0.0",
-  "description": "GitHub repository change watcher that notifies important PRs via GitHub Issues",
-  "main": "src/index.js",
+  "description": "GitHub Action that monitors repository changes and records merged PRs",
+  "main": "dist/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "build": "ncc build src/index.js -o dist",
+    "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@actions/core": "^1.10.0",
     "@octokit/rest": "^19.0.7",
     "dotenv": "^16.0.3",
     "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.36.1"
   }
 }
