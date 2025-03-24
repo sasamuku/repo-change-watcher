@@ -1,7 +1,7 @@
 {
-  "name": "repo-change-watcher",
+  "name": "repo-sprint-digest",
   "version": "1.0.0",
-  "description": "GitHub Action that monitors repository changes and records merged PRs",
+  "description": "GitHub Action that monitors repository changes and provides summaries of merged PRs grouped by date",
   "main": "dist/index.js",
   "scripts": {
     "start": "node src/index.js",

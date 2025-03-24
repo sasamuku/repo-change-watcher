@@ -1,4 +1,4 @@
-name: PR Change Watcher
+name: PR Sprint Digest
 
 on:
   schedule:
@@ -7,19 +7,19 @@ on:
   workflow_dispatch: # Manual trigger
 
 jobs:
-  watch-changes:
+  generate-digest:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Monitor PR Changes
-        uses: sasamuku/repo-change-watcher@v1
+      - name: Generate PR Digest
+        uses: sasamuku/repo-sprint-digest@v1
         with:
           target_repository: 'octocat/Hello-World'  # Replace with your target repository
           days_to_check: 1
-          output_file: 'docs/CHANGES.md'
+          output_file: 'docs/SPRINT-DIGEST.md'
           output_format: 'markdown'
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -28,7 +28,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add docs/
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update PR changes [skip ci]"
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update sprint digest [skip ci]"
 
       - name: Push changes
         uses: ad-m/github-push-action@master

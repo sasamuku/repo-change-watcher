@@ -1,11 +1,12 @@
-# Repository Change Watcher
+# Repository Sprint Digest
 
-A GitHub Action that monitors merged PRs and automatically records change history to a specified file, organized by date.
+A GitHub Action that monitors merged PRs and automatically records change history to a specified file, organized by date for effective sprint reviews and team progress tracking.
 
 ## Features
 
 - Periodically monitors merged PRs in specified GitHub repositories
 - Automatically records all merged PRs to a designated file, grouped by date
+- Facilitates daily and weekly team reviews of development activities
 - Maintains a comprehensive history of all changes over time
 - Avoids duplicate entries when run multiple times
 - Flexible configuration of monitoring targets and output destinations within your workflow
@@ -14,10 +15,10 @@ A GitHub Action that monitors merged PRs and automatically records change histor
 
 ### Workflow Configuration
 
-Add the following to your `.github/workflows/pr-watcher.yml`:
+Add the following to your `.github/workflows/sprint-digest.yml`:
 
 ```yaml
-name: PR Change Watcher
+name: PR Sprint Digest
 
 on:
   schedule:
@@ -27,20 +28,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  watch-changes:
+  generate-digest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - name: Monitor PR Changes
-        uses: sasamuku/repo-change-watcher@v1
+      - name: Generate PR Digest
+        uses: sasamuku/repo-sprint-digest@v1
         with:
           # Target repository to monitor (owner/repo format)
           target_repository: 'octocat/Hello-World'
           # Number of days to look back (default is 1)
           days_to_check: 1
           # File path to output results
-          output_file: 'docs/CHANGES.md'
+          output_file: 'docs/SPRINT-DIGEST.md'
           # Output format (markdown/json/yaml)
           output_format: 'markdown'
           # GitHub token for API authentication
@@ -50,8 +51,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add docs/CHANGES.md
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update PR changes [skip ci]"
+          git add docs/SPRINT-DIGEST.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update sprint digest [skip ci]"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
@@ -161,10 +162,10 @@ You can test this tool locally using either command line arguments or environmen
 export GITHUB_TOKEN=your_github_token
 
 # Run with command line arguments (preferred method)
-npm start -- --target-repository="octocat/Hello-World" --days-to-check="1" --output-file="changes.md" --output-format="markdown"
+npm start -- --target-repository="octocat/Hello-World" --days-to-check="1" --output-file="sprint-digest.md" --output-format="markdown"
 
 # Alternative format with equals sign
-npm start -- --target-repository=octocat/Hello-World --output-file=changes.md
+npm start -- --target-repository=octocat/Hello-World --output-file=sprint-digest.md
 ```
 
 ### Using a .env File
@@ -178,7 +179,7 @@ GITHUB_TOKEN=your_github_token
 # Action inputs
 INPUT_TARGET_REPOSITORY=octocat/Hello-World
 INPUT_DAYS_TO_CHECK=1
-INPUT_OUTPUT_FILE=changes.md
+INPUT_OUTPUT_FILE=sprint-digest.md
 INPUT_OUTPUT_FORMAT=markdown
 ```
 
@@ -194,20 +195,24 @@ npm start
 
 1. The action queries the GitHub API to find PRs that were merged during the specified time period
 2. It collects information about these PRs (number, title, author, merge date)
-3. It organizes PRs by their merge date
+3. It organizes PRs by their merge date for easy daily/weekly review
 4. It reads the existing output file (if any) to avoid adding duplicate entries
 5. It updates the file with new PRs while preserving the historical data
-6. The resulting file is a chronological record of all merged PRs
+6. The resulting file is a chronological record of all merged PRs, perfect for sprint reviews and team meetings
 
 ## Future Enhancements
 
-- AI-powered PR summary generation
+- AI-powered PR summary generation to highlight key development achievements
+- Weekly/sprint rollup summaries for management reporting
 - Customizable PR filtering options
-- Statistical analysis of PR trends
-- Integration with notification platforms
+- Statistical analysis of PR trends and development velocity
+- Integration with notification platforms and team communication tools
+- Automated meeting agenda generation based on PR activities
 
 ## Benefits
 
+- Facilitates effective sprint reviews and team standups with organized PR history
+- Supports agile development by providing clear visibility into daily/weekly accomplishments
 - No external service integration needed, works entirely within GitHub Actions
 - Monitor PR changes in any repository
 - Automatically record change history and manage it within your project

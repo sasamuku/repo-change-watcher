@@ -1,5 +1,5 @@
-name: 'Repository Change Watcher'
-description: 'Monitors merged PRs from specified GitHub repositories and records change history'
+name: 'Repository Sprint Digest'
+description: 'Monitors merged PRs and provides summaries of development progress grouped by date for sprint reviews'
 author: 'sasamuku'
 branding:
   icon: 'git-pull-request'
