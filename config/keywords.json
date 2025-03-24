@@ -3,6 +3,13 @@
     "add",
     "support",
     "release",
-    "feature"
+    "feature",
+    "fix",
+    "update",
+    "refactor",
+    "test",
+    "docs",
+    "chore",
+    "style"
   ]
 }
