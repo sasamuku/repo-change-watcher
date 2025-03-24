@@ -1,8 +1,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const yaml = require('js-yaml');
-const { getImportantPRs } = require('./github');
-const { sendNotification } = require('./notify');
+const { getImportantPRs, createNotificationIssue, createChangelogPR } = require('./github');
 
 // Main function
 async function main() {
@@ -33,12 +32,17 @@ async function main() {
 
     console.log(`Found ${allImportantPRs.length} important PRs.`);
 
-    // Send notification if there are important PRs
+    // Create notification if there are important PRs
     if (allImportantPRs.length > 0) {
-      await sendNotification(allImportantPRs);
-      console.log('Notification sent successfully.');
+      // Create a notification issue
+      const issue = await createNotificationIssue(allImportantPRs);
+      console.log(`Notification issue created: #${issue.data.number}`);
+
+      // Create a changelog PR
+      const pr = await createChangelogPR(allImportantPRs);
+      console.log(`Changelog PR created: #${pr.data.number}`);
     } else {
-      console.log('No important PRs found. No notification sent.');
+      console.log('No important PRs found. No notification created.');
     }
   } catch (error) {
     console.error('Error occurred:', error);

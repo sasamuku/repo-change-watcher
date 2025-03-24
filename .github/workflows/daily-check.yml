@@ -26,6 +26,5 @@ jobs:
         run: npm start
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
-          FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}

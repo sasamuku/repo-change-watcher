@@ -1,7 +1,7 @@
 {
   "name": "repo-change-watcher",
   "version": "1.0.0",
-  "description": "GitHub repository change watcher that notifies important PRs via email",
+  "description": "GitHub repository change watcher that notifies important PRs via GitHub Issues",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@octokit/rest": "^19.0.7",
-    "@sendgrid/mail": "^7.7.0",
     "dotenv": "^16.0.3",
     "js-yaml": "^4.1.0"
   }
