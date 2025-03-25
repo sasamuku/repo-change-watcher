@@ -57,8 +57,15 @@
 
 ## Future Development Guidance
 
-### Enhancement Priorities
-Based on the README, these enhancements would provide the most value:
+### Current Enhancement Focus
+The project is currently focused on implementing AI-powered PR summarization:
+- Using LangChain and OpenAI API to generate concise summaries of PR content
+- Integrating summaries into the existing output formats
+- Optimizing token usage to manage API costs
+- See `docs/ai-summary-feature.md` for detailed implementation plan
+
+### Future Enhancement Priorities
+After completing the AI summarization feature, these enhancements would provide the most value:
 1. Weekly/sprint rollup summaries - for higher-level reporting
 2. Customizable PR filtering options - for focusing on relevant changes
 3. Integration with notification platforms - for proactive alerts
@@ -69,9 +76,13 @@ When implementing tests, focus on these key areas:
 2. Handling pagination and rate limiting
 3. Merging new data with existing content without duplicates
 4. Edge cases like empty repositories or very large PR counts
+5. AI summarization quality and reliability
+6. Error handling for API failures or rate limiting
 
 ### Documentation Improvements
 The documentation could benefit from:
 1. More examples of different output formats
 2. Visual examples of how the digest looks in practice
 3. Advanced configuration options and customization
+4. Examples of AI-summarized PR digests
+5. Cost estimation and optimization guidance for the AI features
