@@ -174,6 +174,9 @@ You can test this tool locally using either command line arguments or environmen
 # Set GitHub token (required)
 export GITHUB_TOKEN=your_github_token
 
+# Set OpenAI API key (optional - for AI summaries)
+export OPENAI_API_KEY=your_openai_api_key
+
 # Run with command line arguments (preferred method)
 npm start -- --target-repository="octocat/Hello-World" --days-to-check="1" --output-file="sprint-digest.md" --output-format="markdown"
 
@@ -189,6 +192,10 @@ Create a `.env` file in the project root with the following content:
 # GitHub API authentication token (required)
 GITHUB_TOKEN=your_github_token
 
+# OpenAI API Key for AI-powered PR summaries (optional)
+# If not provided, summaries will be skipped
+OPENAI_API_KEY=your_openai_api_key_here
+
 # Action inputs
 INPUT_TARGET_REPOSITORY=octocat/Hello-World
 INPUT_DAYS_TO_CHECK=1
@@ -203,6 +210,14 @@ npm start
 ```
 
 **Note:** Command line arguments take precedence over values in the `.env` file.
+
+### AI Summaries
+
+The tool can generate AI-powered summaries for each PR using OpenAI's API. This feature is optional:
+
+- If you provide an `OPENAI_API_KEY`, the tool will generate summaries for each PR
+- If no API key is provided, the tool will skip the summary generation
+- Summaries appear in the output under each PR entry
 
 ## How It Works
 

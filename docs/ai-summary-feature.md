@@ -113,8 +113,10 @@ pr_history:
 ```bash
 npm install langchain @langchain/openai
 ```
-- 環境変数に`OPENAI_API_KEY`を追加（`.env`ファイルに追記）
+- 環境変数に`OPENAI_API_KEY`を追加（`.env`ファイルに追記）- これはオプションです
 ```
+# OpenAI API Key for AI-powered PR summaries (optional)
+# If not provided, summaries will be skipped
 OPENAI_API_KEY=your_api_key_here
 ```
 
