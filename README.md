@@ -84,11 +84,15 @@ jobs:
 ## 2023-04-01
 
 - [#123](https://github.com/octocat/Hello-World/pull/123) Add new feature A (@octocat)
+  > **AI Summary**: This PR adds Feature A, implementing two-factor authentication to enhance security. Main changes include modifications to the authentication controller and user model.
+
 - [#124](https://github.com/octocat/Hello-World/pull/124) Fix bug (@octodev)
+  > **AI Summary**: Fixes an error that occurred on the login screen under specific conditions. Improves error handling and enhances user experience.
 
 ## 2023-03-31
 
 - [#125](https://github.com/octocat/Hello-World/pull/125) Update documentation (@octofan)
+  > **AI Summary**: Updates API documentation by adding descriptions for new endpoints and revising existing examples to match the latest specifications.
 ```
 
 ### JSON Format
@@ -105,14 +109,16 @@ jobs:
         "title": "Add new feature A",
         "url": "https://github.com/octocat/Hello-World/pull/123",
         "author": "octocat",
-        "mergedAt": "2023-04-01T14:32:25Z"
+        "mergedAt": "2023-04-01T14:32:25Z",
+        "summary": "This PR adds Feature A, implementing two-factor authentication to enhance security. Main changes include modifications to the authentication controller and user model."
       },
       {
         "number": 124,
         "title": "Fix bug",
         "url": "https://github.com/octocat/Hello-World/pull/124",
         "author": "octodev",
-        "mergedAt": "2023-04-01T10:15:30Z"
+        "mergedAt": "2023-04-01T10:15:30Z",
+        "summary": "Fixes an error that occurred on the login screen under specific conditions. Improves error handling and enhances user experience."
       }
     ],
     "2023-03-31": [
@@ -121,7 +127,8 @@ jobs:
         "title": "Update documentation",
         "url": "https://github.com/octocat/Hello-World/pull/125",
         "author": "octofan",
-        "mergedAt": "2023-03-31T18:45:12Z"
+        "mergedAt": "2023-03-31T18:45:12Z",
+        "summary": "Updates API documentation by adding descriptions for new endpoints and revising existing examples to match the latest specifications."
       }
     ]
   }
@@ -141,17 +148,20 @@ pr_history:
       url: https://github.com/octocat/Hello-World/pull/123
       author: octocat
       mergedAt: '2023-04-01T14:32:25Z'
+      summary: 'This PR adds Feature A, implementing two-factor authentication to enhance security. Main changes include modifications to the authentication controller and user model.'
     - number: 124
       title: Fix bug
       url: https://github.com/octocat/Hello-World/pull/124
       author: octodev
       mergedAt: '2023-04-01T10:15:30Z'
+      summary: 'Fixes an error that occurred on the login screen under specific conditions. Improves error handling and enhances user experience.'
   '2023-03-31':
     - number: 125
       title: Update documentation
       url: https://github.com/octocat/Hello-World/pull/125
       author: octofan
       mergedAt: '2023-03-31T18:45:12Z'
+      summary: 'Updates API documentation by adding descriptions for new endpoints and revising existing examples to match the latest specifications.'
 ```
 
 ## Local Testing
@@ -205,7 +215,7 @@ npm start
 
 ## Future Enhancements
 
-- AI-powered PR summary generation to highlight key development achievements
+- AI-powered PR summary generation to highlight key development achievements (in progress)
 - Weekly/sprint rollup summaries for management reporting
 - Customizable PR filtering options
 - Statistical analysis of PR trends and development velocity
