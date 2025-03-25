@@ -1,0 +1,77 @@
+# Repository Sprint Digest - Project Intelligence
+
+## Project Patterns
+
+### Configuration Approach
+- The project uses a dual configuration approach:
+  - GitHub Action inputs for workflow-based execution
+  - Environment variables for local development and testing
+- Command-line arguments take precedence over environment variables when running locally
+
+### Code Organization
+- Core functionality is split between two main files:
+  - `src/index.js`: Entry point and orchestration
+  - `src/github.js`: GitHub API interaction and file operations
+- The project follows a functional approach rather than class-based organization
+
+### Error Handling
+- Comprehensive try/catch in the main function
+- Detailed error logging for troubleshooting
+- GitHub Action failure reporting via core.setFailed
+
+### File Operations
+- The project handles three output formats (Markdown, JSON, YAML) with format-specific logic
+- Existing files are read and parsed to prevent duplicate entries
+- Directory creation is handled automatically if the output directory doesn't exist
+
+## Implementation Details
+
+### PR Fetching Strategy
+- Uses pagination to handle repositories with many PRs
+- Limited to 3 pages (300 PRs) to balance completeness with performance
+- Simple rate limit handling with 1-second delays between pagination requests
+
+### Date Handling
+- PRs are grouped by their merge date in ISO format (YYYY-MM-DD)
+- Dates are sorted in descending order (newest first) for display
+- Time components are preserved in the data but not used for grouping
+
+### Duplicate Prevention
+- For Markdown: Extracts PR numbers from markdown links using regex
+- For JSON/YAML: Parses the file and extracts PR numbers from the data structure
+- Supports both old format (flat array) and new format (date-grouped) for backward compatibility
+
+## Known Quirks
+
+### VSCode Configuration Files
+- The VSCode tabs show `config/repos.yaml` and `config/keywords.json`, but these files don't exist in the repository
+- They might be planned features or local configuration files not included in the repository
+
+### Workflow File
+- The example workflow file in `.github/workflows/daily-check.yml` uses a placeholder repository (`octocat/Hello-World`)
+- This should be replaced with the actual target repository when implementing
+
+### Local Testing
+- When testing locally, the GitHub token must be provided via environment variable
+- The token requires `repo` scope for accessing private repositories
+
+## Future Development Guidance
+
+### Enhancement Priorities
+Based on the README, these enhancements would provide the most value:
+1. Weekly/sprint rollup summaries - for higher-level reporting
+2. Customizable PR filtering options - for focusing on relevant changes
+3. Integration with notification platforms - for proactive alerts
+
+### Testing Strategy
+When implementing tests, focus on these key areas:
+1. Parsing different output formats correctly
+2. Handling pagination and rate limiting
+3. Merging new data with existing content without duplicates
+4. Edge cases like empty repositories or very large PR counts
+
+### Documentation Improvements
+The documentation could benefit from:
+1. More examples of different output formats
+2. Visual examples of how the digest looks in practice
+3. Advanced configuration options and customization
