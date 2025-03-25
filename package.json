@@ -12,9 +12,12 @@
   },
   "dependencies": {
     "@actions/core": "^1.10.0",
+    "@langchain/core": "^0.3.43",
+    "@langchain/openai": "^0.4.9",
     "@octokit/rest": "^19.0.7",
     "dotenv": "^16.0.3",
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "langchain": "^0.3.19"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.36.1"

@@ -1,11 +1,56 @@
 const { Octokit } = require('@octokit/rest');
 const fs = require('fs').promises;
 const path = require('path');
+const { summarizePR } = require('./ai');
 
 // Initialize GitHub client
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN
 });
+
+/**
+ * Get PR details including description and changed files
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} prNumber - PR number
+ * @returns {Promise<Object>} PR details
+ */
+async function getPRDetails(owner, repo, prNumber) {
+  try {
+    // Get PR details
+    const { data: prData } = await octokit.pulls.get({
+      owner,
+      repo,
+      pull_number: prNumber
+    });
+
+    // Get PR changed files
+    const { data: filesData } = await octokit.pulls.listFiles({
+      owner,
+      repo,
+      pull_number: prNumber
+    });
+
+    return {
+      title: prData.title,
+      description: prData.body || '',
+      changedFiles: filesData.map(file => ({
+        filename: file.filename,
+        status: file.status,
+        additions: file.additions,
+        deletions: file.deletions,
+        changes: file.changes
+      }))
+    };
+  } catch (error) {
+    console.error(`Error fetching PR details for #${prNumber}:`, error);
+    return {
+      title: 'Unknown',
+      description: '',
+      changedFiles: []
+    };
+  }
+}
 
 /**
  * Get PRs that were closed and merged within the specified days
@@ -217,6 +262,11 @@ function generateGroupedMarkdownContent(prsByDate, repository) {
     // Add PRs for this date
     for (const pr of prsByDate[date]) {
       content += `- [#${pr.number}](https://github.com/${owner}/${repo}/pull/${pr.number}) ${pr.title} (@${pr.author})\n`;
+
+      // Add AI summary if available
+      if (pr.summary) {
+        content += `  > **AI Summary**: ${pr.summary.replace(/\n/g, '\n  > ')}\n\n`;
+      }
     }
     content += '\n';
   }
@@ -269,6 +319,7 @@ function generateGroupedYamlData(prsByDate, repository) {
  * @returns {Promise} Write operation result
  */
 async function writePRChanges(mergedPRs, repository, outputFile, format = 'markdown') {
+  console.log('Starting PR change writing process...');
   // Create directory if it doesn't exist
   const dir = path.dirname(outputFile);
   await fs.mkdir(dir, { recursive: true });
@@ -295,9 +346,37 @@ async function writePRChanges(mergedPRs, repository, outputFile, format = 'markd
     };
   }
 
+  // Get PR details and generate AI summaries
+  console.log('Generating AI summaries for PRs...');
+  const [owner, repo] = repository.split('/');
+  const prsWithSummary = [];
+
+  for (const pr of newPRs) {
+    console.log(`Processing PR #${pr.number}...`);
+    const prDetails = await getPRDetails(owner, repo, pr.number);
+
+    let summary = '';
+    try {
+      if (process.env.OPENAI_API_KEY) {
+        console.log(`Generating AI summary for PR #${pr.number}...`);
+        summary = await summarizePR(prDetails);
+      } else {
+        console.log('OpenAI API key not found. Skipping AI summary generation.');
+      }
+    } catch (error) {
+      console.error(`Error generating summary for PR #${pr.number}:`, error);
+      summary = 'Unable to generate summary.';
+    }
+
+    prsWithSummary.push({
+      ...pr,
+      summary
+    });
+  }
+
   // Group new PRs by date
   const prsByDate = {};
-  newPRs.forEach(pr => {
+  prsWithSummary.forEach(pr => {
     const prDate = new Date(pr.mergedAt).toISOString().split('T')[0];
     if (!prsByDate[prDate]) {
       prsByDate[prDate] = [];
@@ -472,6 +551,11 @@ async function writePRChanges(mergedPRs, repository, outputFile, format = 'markd
             if (prsByDate[date]) {
               for (const pr of prsByDate[date]) {
                 newContent += `- [#${pr.number}](https://github.com/${repository.split('/')[0]}/${repository.split('/')[1]}/pull/${pr.number}) ${pr.title} (@${pr.author})\n`;
+
+                // Add AI summary if available
+                if (pr.summary) {
+                  newContent += `  > **AI Summary**: ${pr.summary.replace(/\n/g, '\n  > ')}\n\n`;
+                }
               }
             }
 
