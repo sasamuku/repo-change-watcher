@@ -360,22 +360,18 @@ async function writePRChanges(mergedPRs, repository, outputFile, format = 'markd
       if (process.env.OPENAI_API_KEY) {
         console.log(`Generating AI summary for PR #${pr.number}...`);
         summary = await summarizePR(prDetails);
-        prsWithSummary.push({
-          ...pr,
-          summary
-        });
       } else {
-        console.log('OpenAI API key not found. Skipping AI summary generation.');
-        prsWithSummary.push({
-          ...pr
-        });
+        console.log('OpenAI API key not found or invalid. Skipping AI summary generation.');
       }
     } catch (error) {
       console.error(`Error generating summary for PR #${pr.number}:`, error);
-      prsWithSummary.push({
-        ...pr
-      });
     }
+
+    // Always add the PR with the same structure, regardless of whether a summary was generated
+    prsWithSummary.push({
+      ...pr,
+      summary
+    });
   }
 
   // Group new PRs by date
