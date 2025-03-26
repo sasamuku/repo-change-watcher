@@ -25,6 +25,7 @@ jobs:
           output_file: 'docs/SPRINT-DIGEST.md'
           output_format: 'markdown'
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}  # Optional: For AI-powered PR summaries
 
       - name: Commit changes
         run: |
