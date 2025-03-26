@@ -49,6 +49,8 @@ jobs:
           output_format: 'markdown'
           # GitHub token for API authentication
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # OpenAI API Key for generating PR summaries (optional)
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Commit changes
         run: |
@@ -73,6 +75,7 @@ jobs:
 | `output_file` | ✅ | File path to write results | - |
 | `output_format` | ❌ | Output format (markdown/json/yaml) | `markdown` |
 | `github_token` | ✅ | GitHub token for API authentication | - |
+| `openai_api_key` | ❌ | OpenAI API Key for generating PR summaries | - |
 
 ## Output Format Examples
 
