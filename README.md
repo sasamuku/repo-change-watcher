@@ -84,11 +84,15 @@ jobs:
 ## 2023-04-01
 
 - [#123](https://github.com/octocat/Hello-World/pull/123) Add new feature A (@octocat)
+  > **AI Summary**: This PR adds Feature A, implementing two-factor authentication to enhance security. Main changes include modifications to the authentication controller and user model.
+
 - [#124](https://github.com/octocat/Hello-World/pull/124) Fix bug (@octodev)
+  > **AI Summary**: Fixes an error that occurred on the login screen under specific conditions. Improves error handling and enhances user experience.
 
 ## 2023-03-31
 
 - [#125](https://github.com/octocat/Hello-World/pull/125) Update documentation (@octofan)
+  > **AI Summary**: Updates API documentation by adding descriptions for new endpoints and revising existing examples to match the latest specifications.
 ```
 
 ### JSON Format
@@ -105,14 +109,16 @@ jobs:
         "title": "Add new feature A",
         "url": "https://github.com/octocat/Hello-World/pull/123",
         "author": "octocat",
-        "mergedAt": "2023-04-01T14:32:25Z"
+        "mergedAt": "2023-04-01T14:32:25Z",
+        "summary": "This PR adds Feature A, implementing two-factor authentication to enhance security. Main changes include modifications to the authentication controller and user model."
       },
       {
         "number": 124,
         "title": "Fix bug",
         "url": "https://github.com/octocat/Hello-World/pull/124",
         "author": "octodev",
-        "mergedAt": "2023-04-01T10:15:30Z"
+        "mergedAt": "2023-04-01T10:15:30Z",
+        "summary": "Fixes an error that occurred on the login screen under specific conditions. Improves error handling and enhances user experience."
       }
     ],
     "2023-03-31": [
@@ -121,7 +127,8 @@ jobs:
         "title": "Update documentation",
         "url": "https://github.com/octocat/Hello-World/pull/125",
         "author": "octofan",
-        "mergedAt": "2023-03-31T18:45:12Z"
+        "mergedAt": "2023-03-31T18:45:12Z",
+        "summary": "Updates API documentation by adding descriptions for new endpoints and revising existing examples to match the latest specifications."
       }
     ]
   }
@@ -141,17 +148,20 @@ pr_history:
       url: https://github.com/octocat/Hello-World/pull/123
       author: octocat
       mergedAt: '2023-04-01T14:32:25Z'
+      summary: 'This PR adds Feature A, implementing two-factor authentication to enhance security. Main changes include modifications to the authentication controller and user model.'
     - number: 124
       title: Fix bug
       url: https://github.com/octocat/Hello-World/pull/124
       author: octodev
       mergedAt: '2023-04-01T10:15:30Z'
+      summary: 'Fixes an error that occurred on the login screen under specific conditions. Improves error handling and enhances user experience.'
   '2023-03-31':
     - number: 125
       title: Update documentation
       url: https://github.com/octocat/Hello-World/pull/125
       author: octofan
       mergedAt: '2023-03-31T18:45:12Z'
+      summary: 'Updates API documentation by adding descriptions for new endpoints and revising existing examples to match the latest specifications.'
 ```
 
 ## Local Testing
@@ -163,6 +173,9 @@ You can test this tool locally using either command line arguments or environmen
 ```bash
 # Set GitHub token (required)
 export GITHUB_TOKEN=your_github_token
+
+# Set OpenAI API key (optional - for AI summaries)
+export OPENAI_API_KEY=your_openai_api_key
 
 # Run with command line arguments (preferred method)
 npm start -- --target-repository="octocat/Hello-World" --days-to-check="1" --output-file="sprint-digest.md" --output-format="markdown"
@@ -179,6 +192,10 @@ Create a `.env` file in the project root with the following content:
 # GitHub API authentication token (required)
 GITHUB_TOKEN=your_github_token
 
+# OpenAI API Key for AI-powered PR summaries (optional)
+# If not provided, summaries will be skipped
+OPENAI_API_KEY=your_openai_api_key_here
+
 # Action inputs
 INPUT_TARGET_REPOSITORY=octocat/Hello-World
 INPUT_DAYS_TO_CHECK=1
@@ -194,6 +211,14 @@ npm start
 
 **Note:** Command line arguments take precedence over values in the `.env` file.
 
+### AI Summaries
+
+The tool can generate AI-powered summaries for each PR using OpenAI's API. This feature is optional:
+
+- If you provide an `OPENAI_API_KEY`, the tool will generate summaries for each PR
+- If no API key is provided, the tool will skip the summary generation
+- Summaries appear in the output under each PR entry
+
 ## How It Works
 
 1. The action queries the GitHub API to find PRs that were merged during the specified time period
@@ -205,7 +230,7 @@ npm start
 
 ## Future Enhancements
 
-- AI-powered PR summary generation to highlight key development achievements
+- AI-powered PR summary generation to highlight key development achievements (in progress)
 - Weekly/sprint rollup summaries for management reporting
 - Customizable PR filtering options
 - Statistical analysis of PR trends and development velocity

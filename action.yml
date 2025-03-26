@@ -23,6 +23,9 @@ inputs:
   github_token:
     description: 'GitHub token for API authentication'
     required: true
+  openai_api_key:
+    description: 'OpenAI API Key for generating PR summaries (optional)'
+    required: false
 
 outputs:
   pr_count:

@@ -10,6 +10,15 @@ async function main() {
     const daysToCheck = parseInt(core.getInput('days_to_check') || '1', 10);
     const outputFile = core.getInput('output_file', { required: true });
     const outputFormat = core.getInput('output_format') || 'markdown';
+    const openaiApiKey = core.getInput('openai_api_key');
+
+    // Set OpenAI API key if provided
+    if (openaiApiKey) {
+      process.env.OPENAI_API_KEY = openaiApiKey;
+      console.log('OpenAI API key provided, AI summaries will be generated.');
+    } else {
+      console.log('OpenAI API key not provided, AI summaries will be skipped.');
+    }
 
     // Validate inputs
     if (!targetRepository.includes('/')) {
@@ -65,7 +74,8 @@ if (require.main === module) {
     targetRepository: getArg('--target-repository'),
     daysToCheck: getArg('--days-to-check'),
     outputFile: getArg('--output-file'),
-    outputFormat: getArg('--output-format')
+    outputFormat: getArg('--output-format'),
+    openaiApiKey: getArg('--openai-api-key')
   };
 
   // Backup values loaded from .env file
@@ -73,7 +83,8 @@ if (require.main === module) {
     targetRepository: process.env.INPUT_TARGET_REPOSITORY,
     daysToCheck: process.env.INPUT_DAYS_TO_CHECK,
     outputFile: process.env.INPUT_OUTPUT_FILE,
-    outputFormat: process.env.INPUT_OUTPUT_FORMAT
+    outputFormat: process.env.INPUT_OUTPUT_FORMAT,
+    openaiApiKey: process.env.INPUT_OPENAI_API_KEY
   };
 
   // Prioritize command line arguments over .env values
@@ -81,6 +92,7 @@ if (require.main === module) {
   if (cliArgs.daysToCheck) process.env.INPUT_DAYS_TO_CHECK = cliArgs.daysToCheck;
   if (cliArgs.outputFile) process.env.INPUT_OUTPUT_FILE = cliArgs.outputFile;
   if (cliArgs.outputFormat) process.env.INPUT_OUTPUT_FORMAT = cliArgs.outputFormat;
+  if (cliArgs.openaiApiKey) process.env.INPUT_OPENAI_API_KEY = cliArgs.openaiApiKey;
 
   // Debug output for used parameters
   if (!process.env.GITHUB_ACTIONS) {
@@ -101,6 +113,10 @@ if (require.main === module) {
     console.log(`- Output format: ${process.env.INPUT_OUTPUT_FORMAT || 'markdown'}${
       cliArgs.outputFormat ? ' (from CLI)' :
       envBackup.outputFormat ? ' (from .env file)' : ' (default)'
+    }`);
+    console.log(`- OpenAI API Key: ${process.env.INPUT_OPENAI_API_KEY ? 'Provided' : 'Not provided'}${
+      cliArgs.openaiApiKey ? ' (from CLI)' :
+      envBackup.openaiApiKey ? ' (from .env file)' : ''
     }`);
     console.log('---');
   }
