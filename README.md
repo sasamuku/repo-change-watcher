@@ -2,6 +2,8 @@
 
 A GitHub Action that monitors merged PRs and automatically records change history to a specified file, organized by date for effective sprint reviews and team progress tracking.
 
+For a complete example of the output, see the [SAMPLE-DIGEST.md](SAMPLE-DIGEST.md) file.
+
 ## Features
 
 - Periodically monitors merged PRs in specified GitHub repositories
@@ -76,8 +78,6 @@ jobs:
 | `output_format` | ❌ | Output format (markdown/json/yaml) | `markdown` |
 | `github_token` | ✅ | GitHub token for API authentication | - |
 | `openai_api_key` | ❌ | OpenAI API Key for generating PR summaries | - |
-
-## Output Format Examples
 
 ### Markdown Format (Default)
 
