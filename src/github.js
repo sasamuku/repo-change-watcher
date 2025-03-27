@@ -509,32 +509,27 @@ async function writePRChanges(mergedPRs, repository, outputFile, format = 'markd
           // Group existing PRs by date sections
           const dateRegex = /^## (\d{4}-\d{2}-\d{2})/gm;
           let match;
-          let lastIndex = 0;
           const existingSections = {};
+          let sections = [];
 
+          // First, find all date headers and their positions
           while ((match = dateRegex.exec(existingContent_withoutHeader)) !== null) {
-            const date = match[1];
-            const startIndex = match.index;
-
-            // If this is not the first match, extract content from previous date to this date
-            if (lastIndex > 0) {
-              const prevSectionContent = existingContent_withoutHeader.substring(lastIndex, startIndex);
-              const prevDate = Object.keys(existingSections)[Object.keys(existingSections).length - 1];
-              existingSections[prevDate] = prevSectionContent;
-            }
-
-            // Store the start index for the next iteration
-            lastIndex = startIndex;
-
-            // Initialize section
-            existingSections[date] = '';
+            sections.push({
+              date: match[1],
+              startIndex: match.index
+            });
           }
 
-          // Handle the last section
-          if (lastIndex > 0) {
-            const lastSectionContent = existingContent_withoutHeader.substring(lastIndex);
-            const lastDate = Object.keys(existingSections)[Object.keys(existingSections).length - 1];
-            existingSections[lastDate] = lastSectionContent;
+          // Then extract content between headers
+          for (let i = 0; i < sections.length; i++) {
+            const currentSection = sections[i];
+            const nextSection = sections[i + 1];
+
+            // Extract content from current section start to next section start (or end of file)
+            const endIndex = nextSection ? nextSection.startIndex : existingContent_withoutHeader.length;
+            const sectionContent = existingContent_withoutHeader.substring(currentSection.startIndex, endIndex);
+
+            existingSections[currentSection.date] = sectionContent;
           }
 
           // Build new content with new PRs at the top of each date section
