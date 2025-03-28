@@ -243,7 +243,7 @@ function generateGroupedMarkdownContent(prsByDate, repository) {
   const date = new Date();
   const formattedDate = date.toISOString().split('T')[0];
 
-  let content = `# PR Change History (${formattedDate})\n\n`;
+  let content = `# PR Change History\n\n`;
 
   // Check if there are any PRs at all
   const totalPRs = Object.values(prsByDate).reduce((sum, prs) => sum + prs.length, 0);
@@ -533,7 +533,8 @@ async function writePRChanges(mergedPRs, repository, outputFile, format = 'markd
           }
 
           // Build new content with new PRs at the top of each date section
-          let newContent = header;
+          // Replace the old header with a new one without the date
+          let newContent = `# PR Change History\n\n`;
 
           // Get all dates from both new and existing content
           const allDates = [...new Set([...Object.keys(prsByDate), ...Object.keys(existingSections)])];
