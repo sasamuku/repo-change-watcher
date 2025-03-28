@@ -84,7 +84,7 @@ if (require.main === module) {
     daysToCheck: process.env.INPUT_DAYS_TO_CHECK,
     outputFile: process.env.INPUT_OUTPUT_FILE,
     outputFormat: process.env.INPUT_OUTPUT_FORMAT,
-    openaiApiKey: process.env.INPUT_OPENAI_API_KEY
+    openaiApiKey: process.env.INPUT_OPENAI_API_KEY || process.env.OPENAI_API_KEY
   };
 
   // Prioritize command line arguments over .env values
@@ -93,6 +93,11 @@ if (require.main === module) {
   if (cliArgs.outputFile) process.env.INPUT_OUTPUT_FILE = cliArgs.outputFile;
   if (cliArgs.outputFormat) process.env.INPUT_OUTPUT_FORMAT = cliArgs.outputFormat;
   if (cliArgs.openaiApiKey) process.env.INPUT_OPENAI_API_KEY = cliArgs.openaiApiKey;
+
+  // If OPENAI_API_KEY is set but INPUT_OPENAI_API_KEY is not, use OPENAI_API_KEY
+  if (!process.env.INPUT_OPENAI_API_KEY && process.env.OPENAI_API_KEY) {
+    process.env.INPUT_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  }
 
   // Debug output for used parameters
   if (!process.env.GITHUB_ACTIONS) {
