@@ -50517,7 +50517,7 @@ function generateGroupedMarkdownContent(prsByDate, repository) {
   const date = new Date();
   const formattedDate = date.toISOString().split('T')[0];
 
-  let content = `# PR Change History (${formattedDate})\n\n`;
+  let content = `# PR Change History\n\n`;
 
   // Check if there are any PRs at all
   const totalPRs = Object.values(prsByDate).reduce((sum, prs) => sum + prs.length, 0);
@@ -50783,36 +50783,32 @@ async function writePRChanges(mergedPRs, repository, outputFile, format = 'markd
           // Group existing PRs by date sections
           const dateRegex = /^## (\d{4}-\d{2}-\d{2})/gm;
           let match;
-          let lastIndex = 0;
           const existingSections = {};
+          let sections = [];
 
+          // First, find all date headers and their positions
           while ((match = dateRegex.exec(existingContent_withoutHeader)) !== null) {
-            const date = match[1];
-            const startIndex = match.index;
-
-            // If this is not the first match, extract content from previous date to this date
-            if (lastIndex > 0) {
-              const prevSectionContent = existingContent_withoutHeader.substring(lastIndex, startIndex);
-              const prevDate = Object.keys(existingSections)[Object.keys(existingSections).length - 1];
-              existingSections[prevDate] = prevSectionContent;
-            }
-
-            // Store the start index for the next iteration
-            lastIndex = startIndex;
-
-            // Initialize section
-            existingSections[date] = '';
+            sections.push({
+              date: match[1],
+              startIndex: match.index
+            });
           }
 
-          // Handle the last section
-          if (lastIndex > 0) {
-            const lastSectionContent = existingContent_withoutHeader.substring(lastIndex);
-            const lastDate = Object.keys(existingSections)[Object.keys(existingSections).length - 1];
-            existingSections[lastDate] = lastSectionContent;
+          // Then extract content between headers
+          for (let i = 0; i < sections.length; i++) {
+            const currentSection = sections[i];
+            const nextSection = sections[i + 1];
+
+            // Extract content from current section start to next section start (or end of file)
+            const endIndex = nextSection ? nextSection.startIndex : existingContent_withoutHeader.length;
+            const sectionContent = existingContent_withoutHeader.substring(currentSection.startIndex, endIndex);
+
+            existingSections[currentSection.date] = sectionContent;
           }
 
           // Build new content with new PRs at the top of each date section
-          let newContent = header;
+          // Replace the old header with a new one without the date
+          let newContent = `# PR Change History\n\n`;
 
           // Get all dates from both new and existing content
           const allDates = [...new Set([...Object.keys(prsByDate), ...Object.keys(existingSections)])];
@@ -50961,7 +50957,7 @@ if (require.main === require.cache[eval('__filename')]) {
     daysToCheck: process.env.INPUT_DAYS_TO_CHECK,
     outputFile: process.env.INPUT_OUTPUT_FILE,
     outputFormat: process.env.INPUT_OUTPUT_FORMAT,
-    openaiApiKey: process.env.INPUT_OPENAI_API_KEY
+    openaiApiKey: process.env.INPUT_OPENAI_API_KEY || process.env.OPENAI_API_KEY
   };
 
   // Prioritize command line arguments over .env values
@@ -50970,6 +50966,11 @@ if (require.main === require.cache[eval('__filename')]) {
   if (cliArgs.outputFile) process.env.INPUT_OUTPUT_FILE = cliArgs.outputFile;
   if (cliArgs.outputFormat) process.env.INPUT_OUTPUT_FORMAT = cliArgs.outputFormat;
   if (cliArgs.openaiApiKey) process.env.INPUT_OPENAI_API_KEY = cliArgs.openaiApiKey;
+
+  // If OPENAI_API_KEY is set but INPUT_OPENAI_API_KEY is not, use OPENAI_API_KEY
+  if (!process.env.INPUT_OPENAI_API_KEY && process.env.OPENAI_API_KEY) {
+    process.env.INPUT_OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+  }
 
   // Debug output for used parameters
   if (!process.env.GITHUB_ACTIONS) {
